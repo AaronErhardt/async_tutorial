@@ -9,7 +9,6 @@ use tokio::join;
 
 struct SleepFuture {
     end_time: Instant,
-    thread_spawned: bool,
 }
 
 impl SleepFuture {
@@ -17,7 +16,6 @@ impl SleepFuture {
         let end_time = Instant::now() + duration;
         Self {
             end_time,
-            thread_spawned: false,
         }
     }
 }
@@ -28,28 +26,15 @@ impl Future for SleepFuture {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         println!("Polled");
 
-        // let now = Instant::now();
-        // let duration = self.end_time - now;
-        // std::thread::sleep(duration);
-        // return Poll::Ready(());
+        // 1. Version
+        // -> Return ready
+        todo!()
 
-        if Instant::now() > self.end_time {
-            Poll::Ready(())
-        } else {
-            if !self.thread_spawned {
-                self.thread_spawned = true;
-                let end_time = self.end_time;
-                let waker = cx.waker().clone();
-
-                std::thread::spawn(move || {
-                    let now = Instant::now();
-                    let duration = end_time - now;
-                    std::thread::sleep(duration);
-                    waker.wake()
-                });
-            }
-            Poll::Pending
-        }
+        // 2. Version
+        // -> Return ready when time passed
+        
+        // 3. Version
+        // -> Wake the runtime
     }
 }
 
