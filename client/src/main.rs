@@ -1,12 +1,16 @@
 use tokio::{
-    io::{stdin, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader}, join, net::TcpStream
+    io::{stdin, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
+    join,
+    net::TcpStream,
 };
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
+    // Create stream and split into read and write handles
     let stream = TcpStream::connect("127.0.0.1:7777").await.unwrap();
     let (mut read_handle, mut write_handle) = stream.into_split();
 
+    // Wait for incoming messages
     let read_task = tokio::spawn(async move {
         loop {
             let length = read_handle.read_u64().await.unwrap();
@@ -18,6 +22,7 @@ async fn main() {
         }
     });
 
+    // Read stdio and send messages to the server
     let write_task = tokio::spawn(async move {
         let stdin = stdin();
         let mut stdin = BufReader::new(stdin);
@@ -34,5 +39,6 @@ async fn main() {
         }
     });
 
+    // Make sure the runtime isn't dropped to keep the tasks alive
     let _ = join!(read_task, write_task);
 }
